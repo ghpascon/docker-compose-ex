@@ -1,0 +1,64 @@
+services:
+  app1:
+    build:
+      context: ./app1
+      dockerfile: Dockerfile
+    container_name: app1_health_monitor
+    ports:
+      - "5001:5001"
+    environment:
+      - PYTHONPATH=/app
+      - APP2_URL=http://app2:5002
+      - CALL_INTERVAL=45
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - app_network
+
+  app2:
+    build:
+      context: ./app2
+      dockerfile: Dockerfile
+    container_name: app2_verification_service
+    ports:
+      - "5002:5002"
+    environment:
+      - PYTHONPATH=/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - app_network
+
+  app3:
+    build:
+      context: ./app3
+      dockerfile: Dockerfile
+    container_name: app3_data_sender
+    environment:
+      - PYTHONPATH=/app
+      - APP1_URL=http://app1:5001
+      - SEND_INTERVAL=30
+    depends_on:
+      - app1
+    restart: unless-stopped
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+    name: docker_ex_network
+
+volumes:
+  app_data:
+    driver: local

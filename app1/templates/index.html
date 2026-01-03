@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ app_name }}</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+      .container {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 800px;
+        width: 100%;
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 30px;
+      }
+      h2 {
+        color: #555;
+        margin: 25px 0 15px 0;
+        font-size: 18px;
+      }
+      .status {
+        font-size: 24px;
+        font-weight: bold;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 20px 0;
+      }
+      .healthy {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .info {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+      }
+      .stats-section {
+        background-color: #e3f2fd;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        border-left: 4px solid #2196f3;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        margin: 15px 0;
+      }
+      .stat-item {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2196f3;
+      }
+      .stat-label {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+      }
+      .last-call {
+        font-size: 12px;
+        color: #666;
+        margin-top: 10px;
+      }
+      .data-section {
+        background-color: #fff3e0;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        border-left: 4px solid #ff9800;
+      }
+      .data-list {
+        display: grid;
+        gap: 10px;
+        margin: 15px 0;
+      }
+      .data-item {
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: left;
+      }
+      .data-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+      }
+      .data-type {
+        background: #ff9800;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .data-time {
+        font-size: 11px;
+        color: #666;
+      }
+      .data-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin: 5px 0;
+      }
+      .data-sensor {
+        font-size: 11px;
+        color: #888;
+      }
+      .timestamp {
+        color: #666;
+        font-size: 14px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>{{ app_name }}</h1>
+      <div class="status healthy">Status: {{ status.upper() }}</div>
+      <div class="info">
+        <p><strong>Service:</strong> FastAPI Health Monitor</p>
+        <p><strong>Port:</strong> 5001</p>
+        <p><strong>Version:</strong> 1.0.0</p>
+      </div>
+
+      <!-- App2 Integration Stats -->
+      <div class="stats-section">
+        <h2>🔍 App2 Integration Status</h2>
+        <div class="stat-grid">
+          <div class="stat-item">
+            <div class="stat-value">{{ app2_stats.total_calls or 0 }}</div>
+            <div class="stat-label">Total Calls</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ app2_stats.successful_calls or 0 }}</div>
+            <div class="stat-label">Successful</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ app2_stats.errors or 0 }}</div>
+            <div class="stat-label">Errors</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">
+              {{ "🟢" if app2_stats.running else "🔴" }}
+            </div>
+            <div class="stat-label">Status</div>
+          </div>
+        </div>
+        {% if app2_stats.last_called %}
+        <p class="last-call">
+          Last call: {{ app2_stats.last_called.split('T')[1].split('.')[0] }}
+        </p>
+        {% endif %}
+      </div>
+
+      <!-- Recent Data from App3 -->
+      {% if received_data %}
+      <div class="data-section">
+        <h2>📡 Recent Data from App3</h2>
+        <div class="data-list">
+          {% for item in received_data %}
+          <div class="data-item">
+            <div class="data-header">
+              <span class="data-type">{{ item.data.type }}</span>
+              <span class="data-time"
+                >{{ item.timestamp.split('T')[1].split('.')[0] }}</span
+              >
+            </div>
+            <div class="data-value">
+              {{ item.data.value }} {{ item.data.unit }}
+            </div>
+            <div class="data-sensor">Sensor: {{ item.data.sensor_id }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="timestamp">Last updated: <span id="timestamp"></span></div>
+    </div>
+
+    <script>
+      document.getElementById("timestamp").textContent =
+        new Date().toLocaleString();
+
+      // Auto refresh every 30 seconds
+      setInterval(() => {
+        location.reload();
+      }, 30000);
+    </script>
+  </body>
+</html>
